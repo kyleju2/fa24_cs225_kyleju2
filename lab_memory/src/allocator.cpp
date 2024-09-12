@@ -18,6 +18,14 @@ Allocator::Allocator(const std::string& studentFile, const std::string& roomFile
     loadRooms(roomFile);
 }
 
+// create a destructor for Allocator
+Allocator::~Allocator() {
+    delete[] alpha;
+    delete[] rooms;
+    alpha = nullptr;
+    rooms = nullptr;
+}
+
 void Allocator::createLetterGroups()
 {
     // Make letters (A - Z lettergroups)
@@ -44,14 +52,16 @@ void Allocator::loadRooms(const std::string& file)
 {
     // Read in rooms
     fileio::loadRooms(file);
+    // we need to define roomCount;
+    roomCount = fileio::getNumRooms();
     rooms = new Room[roomCount];
 
     totalCapacity = 0;
     int i = 0;
     while (fileio::areMoreRooms()) {
-        i++; 
         rooms[i] = fileio::nextRoom();
         totalCapacity += rooms[i].capacity;
+        i++; 
     }
 }
 

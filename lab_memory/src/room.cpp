@@ -63,7 +63,7 @@ void Room::clear()
 {
     if (letters != NULL)
 
-        delete letters;
+        delete[] letters; // change to delete[] bc it is an array  
 }
 
 void Room::copy(const Room& other)
@@ -72,6 +72,9 @@ void Room::copy(const Room& other)
     capacity = other.capacity;
     count = other.count;
     letterCount = other.letterCount;
-    letters = other.letters;
-
+    letters = new Letter[max_letters]; // we need to make a deep copy here to avoid memory leaks
+    // we need to iterate through other.letters to grab values of each letter and assign it to our deep copy
+    for (int i = 0; i < max_letters; i++) {
+        letters[i] = other.letters[i];
+    }
 }
