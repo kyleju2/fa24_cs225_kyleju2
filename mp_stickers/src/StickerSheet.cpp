@@ -10,18 +10,15 @@ StickerSheet::StickerSheet(const Image& picture) {
 
 
 StickerSheet::StickerSheet(StickerSheet& other) {
-    if (base_img != nullptr) 
-        base_img = new Image(*(other.base_img));
-    else
-        base_img = nullptr;
+    base_img = (other.base_img != nullptr) ? new Image(*(other.base_img)) : nullptr;
+
+    stickers.resize(other.stickers.size(), nullptr);
 
     for (unsigned i = 0; i < other.stickers.size(); i++) {
-        if (other.stickers[i] == nullptr)
-            stickers[i] = nullptr;
-
-        stickers[i] = new Image(*(other.stickers[i]));
+        if (other.stickers[i] != nullptr) {
+            stickers[i] = new Image(*(other.stickers[i]));
+        }
     }
-
     x_coords = other.x_coords;
     y_coords = other.y_coords;
 }
