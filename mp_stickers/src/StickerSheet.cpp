@@ -4,8 +4,16 @@
 
 // parameterized constructor
 StickerSheet::StickerSheet(const Image& picture) {
-    base_img = new Image(picture); // create a heap-allocated image and store the pointer as the background
-    // I think this is a deep copy?? not 100% sure though
+    base_img = new Image(picture);
+}
+
+StickerSheet::StickerSheet(const StickerSheet& other) {
+    base_img = new Image(*(other.base_img));
+    for (unsigned i = 0; i < other.stickers.size(); i++) {
+        x_coords[i] = other.x_coords[i];
+        y_coords[i] = other.y_coords[i];
+        stickers[i] = new Image(*(other.stickers[i]));
+    }
 }
 
 
@@ -13,6 +21,8 @@ StickerSheet::~StickerSheet() {
     for (size_t i = 0; i < stickers.size(); i++) {
         delete stickers[i];
     }
+
+    delete base_img;
 }
 
 
@@ -27,9 +37,9 @@ int StickerSheet::addSticker(Image& sticker, int x, int y) {
 
 int StickerSheet::setStickerAtLayer(Image& sticker, unsigned layer, int x, int y) {
     // if layer is greater than the size of the stickers vector
-    if (layer >= stickers.size()) {
+    if (layer > stickers.size()) {
         addSticker(sticker, x, y);
-        return stickers.size();
+        return stickers.size() - 1; // size - 1 == index
     }
     
     stickers[layer] = new Image(sticker);
@@ -78,15 +88,49 @@ int StickerSheet::layers() const {
 
 
 Image StickerSheet::render() const {
-    auto x_bounds = std::minmax_element(x_coords.begin(), x_coords.end());
-    auto y_bounds = std::minmax_element(x_coords.begin(), x_coords.end());
+    int min_x = 0;
+    int min_y = 0;
+    int max_x = base_img->width() - 1;
+    int max_y = base_img->height() - 1;
 
-    int width = *x_bounds.second - *x_bounds.first;
-    int height = *y_bounds.second - *y_bounds.first;
+    for (unsigned i = 0; i < stickers.size(); i++) {
+        if (stickers[i] != nullptr) {
+            min_x = std::min(min_x, x_coords[i]);
+            min_y = std::min(min_y, y_coords[i]);
+            max_x = std::max(max_x, x_coords[i] + (int)stickers[i]->width() - 1);
+            max_y = std::max(max_y, y_coords[i] + (int)stickers[i]->height() - 1);            
+        }
+    }
+    // calculate the new height and width based on difference
+    // between the max and mins of x and y
+    int new_width = max_x - min_x + 1;
+    int new_height = max_y - min_y + 1;
 
-    Image* rend  = new Image(width, height); 
-    return *rend;
-    // for (auto i = 0; i < stickers.size(); i++) {
+    // create render() output based on dimensions calculated above
 
+    Image* canvas = new Image(new_width, new_height);
+
+    // for (unsigned i = 0; i < width_ * height_; i++) {
+    //   imageData_[i] = other.imageData_[i];
     // }
+    // copy base image over to the new rendered image 
+    for (unsigned x = 0; x < base_img->width(); x++) {
+        for (unsigned y = 0; y < base_img->height(); y++) {
+            canvas->getPixel(x - min_x, y - min_y) = base_img->getPixel(x, y);
+        }
+    }
+
+
+    for (unsigned i = 0; i < stickers.size(); i++) {
+        if (stickers[i] == nullptr) 
+            continue;
+
+        for (unsigned x = 0; x < stickers[i]->width(); x++) {
+            for (unsigned y = 0; y < stickers[i]->height(); y++) {
+                canvas->getPixel(x - min_x + x_coords[i], y - min_y + y_coords[i]) = stickers[i]->getPixel(x, y);
+            }
+        }
+    }
+
+    return *canvas;
 }

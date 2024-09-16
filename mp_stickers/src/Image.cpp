@@ -173,11 +173,12 @@ void Image::rotateColor(double degrees) {
     for (unsigned x = 0; x < width_; x++) {
         for (unsigned y = 0; y < height_; y++) {
             cs225::HSLAPixel & p = getPixel(x, y);
-            if (p.h + degrees <= 360) {
-                p.h += degrees;
+            p.h += degrees;
+            if (p.h >= 360) {
+                p.h = std::fmod(p.h, 360.0);
             }
-            else {
-                p.h = p.h + std::fmod(degrees, 360.0) - 360.0;
+            else if (p.h < 0) {
+                p.h += 360; 
             }
         }
     }
@@ -188,10 +189,10 @@ void Image::scale(double factor) {
     unsigned width_ = width();
     unsigned height_ = height();
 
-    unsigned new_width_ = width_*factor;
-    unsigned new_height_ = height_*factor;
+    double new_width_ = width_*factor;
+    double new_height_ = height_*factor;
 
-    unsigned ratio; // check to see if the ratio of height change or width change is greater (mainly for the other scale() definition)
+    double ratio; // check to see if the ratio of height change or width change is greater (mainly for the other scale() definition)
     if ((width_ / new_width_) < (height_ / new_height_)) {
         ratio = width_ / new_width_;
     }
@@ -211,8 +212,8 @@ void Image::scale(double factor) {
 
 
 void Image::scale(unsigned w, unsigned h) {
-    unsigned width_ = width();
-    unsigned height_ = height();
+    double width_ = width();
+    double height_ = height();
 
     double scale_w = (double) w / width_;
     double scale_h = (double) h / height_;

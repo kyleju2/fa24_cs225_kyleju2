@@ -37,6 +37,9 @@ public:
    */
   StickerSheet(const Image& picture);
 
+  StickerSheet(const StickerSheet& other); // copy constructor
+
+
   /**
    * Adds a `sticker` to the StickerSheet, so that the top-left of the sticker's
    * `Image` is at `(x, y)` on the StickerSheet.
