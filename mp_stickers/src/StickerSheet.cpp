@@ -94,11 +94,9 @@ void StickerSheet::removeSticker(unsigned index) {
     if (index >= layers() || stickers[index] == nullptr)
         return;
 
-    if (stickers[index] != nullptr)     // Delete the dynamically allocated sticker
-        stickers[index] = nullptr;    // Set the pointer to nullptr
-
-    x_coords[index] = 0;
-    y_coords[index] = 0;
+    stickers.erase(stickers.begin() + index);
+    x_coords.erase(x_coords.begin() + index);
+    y_coords.erase(y_coords.begin() + index);
 }
 
 
