@@ -5,32 +5,40 @@
 // parameterized constructor
 StickerSheet::StickerSheet(const Image& picture) {
     base_img = new Image(picture);
+    
 }
 
-StickerSheet::StickerSheet(const StickerSheet& other) {
-    base_img = new Image(*(other.base_img));
+
+StickerSheet::StickerSheet(StickerSheet& other) {
+    if (base_img != nullptr) 
+        base_img = new Image(*(other.base_img));
+    else
+        base_img = nullptr;
+
     for (unsigned i = 0; i < other.stickers.size(); i++) {
-        x_coords[i] = other.x_coords[i];
-        y_coords[i] = other.y_coords[i];
+        if (other.stickers[i] == nullptr)
+            stickers[i] = nullptr;
+
         stickers[i] = new Image(*(other.stickers[i]));
     }
+
+    x_coords = other.x_coords;
+    y_coords = other.y_coords;
 }
 
 
 StickerSheet::~StickerSheet() {
-    for (size_t i = 0; i < stickers.size(); i++) {
+    delete base_img;
+    for (unsigned i = 0; i < stickers.size(); i++) {
         delete stickers[i];
     }
-
-    delete base_img;
 }
-
 
 int StickerSheet::addSticker(Image& sticker, int x, int y) {
     stickers.push_back(new Image(sticker));
     x_coords.push_back(x);
     y_coords.push_back(y);
-    return stickers.size();
+    return stickers.size() - 1;
     // add image pointer to stickers, and add coords to respective vectors
 }
 
@@ -52,8 +60,8 @@ int StickerSheet::setStickerAtLayer(Image& sticker, unsigned layer, int x, int y
 
 
 bool StickerSheet::translate(unsigned index, int x, int y) {
-    if (stickers.at(index) == nullptr) {return false;}
-    if (index >= stickers.size()) {return false;}
+    if (index >= stickers.size() || stickers[index] == nullptr) 
+        return false;
 
     x_coords[index] = x;
     y_coords[index] = y;
@@ -62,23 +70,21 @@ bool StickerSheet::translate(unsigned index, int x, int y) {
 
 
 void StickerSheet::removeSticker(unsigned index) {
-    if (index < 0 || index + 1 > stickers.size()) {
+    if (index >= stickers.size())
         return;
-    }
 
-    delete stickers[index];
-    stickers[index] = nullptr;
-    x_coords[index] = 0;
-    y_coords[index] = 0;
+    if (stickers[index] != nullptr) {
+        delete stickers[index];       // Delete the dynamically allocated sticker
+        stickers[index] = nullptr;    // Set the pointer to nullptr
+    }
 }
 
 
 Image* StickerSheet::getSticker(unsigned index) {
-    if (index < 0 || index + 1 > stickers.size()) {
+    if (index >= stickers.size() || stickers[index] == nullptr) {
         return nullptr;
     }
-    return stickers.at(index);
-
+    return stickers[index];
 }
 
 
@@ -127,7 +133,12 @@ Image StickerSheet::render() const {
 
         for (unsigned x = 0; x < stickers[i]->width(); x++) {
             for (unsigned y = 0; y < stickers[i]->height(); y++) {
-                canvas->getPixel(x - min_x + x_coords[i], y - min_y + y_coords[i]) = stickers[i]->getPixel(x, y);
+                cs225::HSLAPixel& p = stickers[i]->getPixel(x, y);
+                // check alpha value of pixel before writing to canvas
+                if (p.a == 0)
+                    continue;
+
+                canvas->getPixel(x - min_x + x_coords[i], y - min_y + y_coords[i]) = p;
             }
         }
     }

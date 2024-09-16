@@ -7,7 +7,8 @@
 using namespace std;
 
 
-void Image::lighten() {
+void Image::lighten()
+{
     unsigned width_ = width();
     unsigned height_ = height();
 
@@ -21,7 +22,6 @@ void Image::lighten() {
         }
     }
 }
-
 
 void Image::lighten(double amount) {
     unsigned width_ = width();

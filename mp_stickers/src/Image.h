@@ -15,14 +15,16 @@ class Image : public cs225::PNG {
     /**
       * Creates an empty Image.
       */
-    Image() : PNG() {}
+    // Image() : PNG() {} 
 
+    Image() : PNG() {}
     /**
       * Creates an Image of the specified dimensions.
       * @param width Width of the new image.
       * @param height Height of the new image.
       */
     Image(unsigned int width, unsigned int height) : PNG(width, height) {}
+
 
     /**
      * Lighten an Image by increasing the luminance of every pixel by 0.1.

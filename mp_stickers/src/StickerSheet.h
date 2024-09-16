@@ -37,7 +37,7 @@ public:
    */
   StickerSheet(const Image& picture);
 
-  StickerSheet(const StickerSheet& other); // copy constructor
+  StickerSheet(StickerSheet& other); // copy constructor
 
 
   /**

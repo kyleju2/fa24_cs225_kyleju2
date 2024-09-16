@@ -18,20 +18,22 @@ static void checkStickerPlacement(const Image& sticker, const Image& sheet, cons
 }
 
 TEST_CASE("A basic StickerSheet works", "[weight=5][part=2][valgrind][timeout=30000]") {
-  Image alma; alma.readFromFile("../data/alma.png");
-  Image i;    i.readFromFile("../data/i.png");
+  Image alma; 
+  alma.readFromFile("../data/alma.png");
+  Image i;    
+  i.readFromFile("../data/i.png");
 
   StickerSheet sheet(alma);
-  REQUIRE( sheet.layers() == 0);
+  REQUIRE(sheet.layers() == 0);
   
   sheet.addSticker(i, 20, 200);
 
-  REQUIRE( sheet.layers() == 1);
+  REQUIRE(sheet.layers() == 1);
 
   Image expected;
   expected.readFromFile("../data/expected.png");
 
-  REQUIRE( sheet.render() == expected );
+  REQUIRE(sheet.render() == expected);
 }
 
 TEST_CASE("A StickerSheet with no stickers works", "[weight=5][part=2][timeout=30000]") {
