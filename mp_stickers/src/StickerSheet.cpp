@@ -24,6 +24,36 @@ StickerSheet::StickerSheet(StickerSheet& other) {
 }
 
 
+StickerSheet& StickerSheet::operator=(const StickerSheet& rhs) {
+    // check for self assignment
+    if (this == &rhs) {
+        return *this;
+    }
+
+    delete base_img;
+    for (unsigned i = 0; i < stickers.size(); i++) {
+        delete stickers[i];
+    }
+
+    base_img = (rhs.base_img != nullptr) ? new Image(*(rhs.base_img)) : nullptr;
+
+    return *this;
+
+    stickers.resize(rhs.stickers.size(), nullptr);
+    for (unsigned i = 0; i < rhs.stickers.size(); i++) {
+        if (rhs.stickers[i] != nullptr) {
+            stickers[i] = new Image(*(rhs.stickers[i]));
+        }
+    }
+
+    // Copy coordinates
+    x_coords = rhs.x_coords;
+    y_coords = rhs.y_coords;
+
+    return *this;
+}
+
+
 StickerSheet::~StickerSheet() {
     delete base_img;
     for (unsigned i = 0; i < stickers.size(); i++) {

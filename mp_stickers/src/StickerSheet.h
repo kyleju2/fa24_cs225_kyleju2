@@ -39,7 +39,7 @@ public:
 
   StickerSheet(StickerSheet& other); // copy constructor
 
-
+  StickerSheet& operator=(const StickerSheet& rhs); // assignment operator overload
   /**
    * Adds a `sticker` to the StickerSheet, so that the top-left of the sticker's
    * `Image` is at `(x, y)` on the StickerSheet.
