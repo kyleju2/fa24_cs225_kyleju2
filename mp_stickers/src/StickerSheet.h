@@ -28,7 +28,7 @@ public:
    * Add any constructors/destructors you may need based on your
    * class design for StickerSheet.
    */
-    ~StickerSheet();
+  ~StickerSheet();
 
   /**
    * Initializes this StickerSheet with a deep copy of the base picture.
@@ -111,7 +111,7 @@ public:
    *
    * @return The total number of layers
    */
-  int layers() const;
+  unsigned layers() const;
 
   /**
    * Renders the whole StickerSheet on one Image and returns that Image.

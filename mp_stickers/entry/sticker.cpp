@@ -4,40 +4,75 @@
 using namespace std;
 
 int main() {
+  Image alma; alma.readFromFile("../data/alma.png");
+  Image i;    i.readFromFile("../data/i.png");
+
+  StickerSheet sheet(alma);
+
+  /**
+   * For testing deep copy of base image
+   * The {...} are used for a block statement
+   * and are intentional
+   */
+  // {
+  //   Image almaDuplicate = alma;
+
+  //   StickerSheet sheetDuplicate(almaDuplicate);
+  //   sheet = sheetDuplicate;
+  // }
+
+  cout << "layers: " << sheet.layers() << endl;
 
 
+  sheet.addSticker(i, 800, 200);
+  sheet.addSticker(i, 50, 500);
+  cout << "layers: " << sheet.layers() << endl;
+ 
 
+  sheet.removeSticker(1);
 
-  Image alma;
-  alma.readFromFile("../data/alma.png");
-  StickerSheet alma_sheet(alma);
+  const Image &renderXBound = sheet.render();
+  sheet.render().writeToFile("../data/renderx.png");
+  cout << "renderxBound dims: " << renderXBound.width() << " " << renderXBound.height() << endl; 
+  cout << i.width() + 800 << endl;
+  // REQUIRE( renderXBound.width() == i.width() + 800 );
+  // REQUIRE( renderXBound.height() == alma.height() );
 
+  // checkStickerPlacement(i, renderXBound, 800, 200);
 
-  // adding a sticker
-  Image blockI;
-  blockI.readFromFile("../data/i.png");
-  alma_sheet.addSticker(blockI, 0,0);
+  sheet.removeSticker(0);
 
-    cout << &blockI << endl;
-    cout << alma_sheet.getSticker(0) << endl;
+  // REQUIRE( sheet.render() == alma );
 
+  sheet.addSticker(i, 20, 500);
 
-  // Image penguin;
-  // penguin.readFromFile("../data/penguin.png");
-  // // alma_sheet.addSticker(penguin, 0, 0);
+  const Image &renderYBound = sheet.render();
+  sheet.render().writeToFile("../data/rendery.png");
+  cout << "renderyBound dims: " << renderYBound.width() << " " << renderYBound.height() << endl; 
+  cout << i.height() + 500 << endl;
+  // REQUIRE( renderYBound.width() == alma.width() );
+  // REQUIRE( renderYBound.height() == i.height() + 500 );
 
+  // checkStickerPlacement(i, renderYBound, 20, 500);
 
-  // cout << alma_sheet.getSticker(1) << endl;
-  // cout << "layers: " << alma_sheet.layers() << endl;
-  // alma_sheet.translate(1, 500, 250);
-  // StickerSheet alma_sheet_2(alma_sheet);
-  // cout << &alma_sheet_2 << ' ' << &alma_sheet << endl;
-  // cout << alma_sheet_2.getSticker(1) << ' ' << alma_sheet.getSticker(1) << endl;
-  // alma_sheet_2.translate(0, 500, 250);
+  sheet.removeSticker(0);
 
+  // REQUIRE( sheet.render() == alma );
 
-  alma_sheet.render().writeToFile("../data/image1.png");
-  // alma_sheet_2.render().writeToFile("image2.png");
+  sheet.addSticker(i, 800, 200);
+  sheet.addSticker(i, -100, -500);
+
+  const Image &renderXYBound = sheet.render();
+  sheet.render().writeToFile("../data/renderxy.png");
+  cout << "renderxyBound dims: " << renderXYBound.width() << " " << renderXYBound.height() << endl; 
+  // cout << i.width() + 800 << endl;
+  // checkStickerPlacement(i, renderXYBound, 900, 700);
+  // checkStickerPlacement(i, renderXYBound, 0, 0);
+  sheet.removeSticker(3);
+  sheet.removeSticker(4);
+  sheet.removeSticker(5);
+
+  cout << "sheet.render() == alma | pass?  :  " << to_string(sheet.render() == alma ) << endl;
 
 
   return 0;

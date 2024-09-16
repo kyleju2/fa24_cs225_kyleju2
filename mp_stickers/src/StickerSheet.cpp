@@ -1,28 +1,30 @@
 #include "StickerSheet.h"
+#include <iostream>
 #include <algorithm>
 
 
 // parameterized constructor
 StickerSheet::StickerSheet(const Image& picture) {
     base_img = new Image(picture);
-    
 }
 
 
-StickerSheet::StickerSheet(StickerSheet& other) {
-    base_img = (other.base_img != nullptr) ? new Image(*(other.base_img)) : nullptr;
+StickerSheet::StickerSheet(StickerSheet& rhs) {
+    base_img = (rhs.base_img != nullptr) ? new Image(*rhs.base_img) : nullptr;
+    int layers_ = rhs.layers();
+    stickers.resize(layers_, nullptr);
+    x_coords.resize(layers_);
+    y_coords.resize(layers_);
 
-    stickers.resize(other.stickers.size(), nullptr);
-
-    for (unsigned i = 0; i < other.stickers.size(); i++) {
-        if (other.stickers[i] != nullptr) {
-            stickers[i] = new Image(*(other.stickers[i]));
+    for (unsigned i = 0; i < rhs.stickers.size(); i++) {
+        if (rhs.stickers[i] != nullptr) {
+            stickers[i] = rhs.stickers[i];
         }
     }
-    x_coords = other.x_coords;
-    y_coords = other.y_coords;
+    x_coords = rhs.x_coords;
+    y_coords = rhs.y_coords;
 }
-
+ 
 
 StickerSheet& StickerSheet::operator=(const StickerSheet& rhs) {
     // check for self assignment
@@ -31,24 +33,20 @@ StickerSheet& StickerSheet::operator=(const StickerSheet& rhs) {
     }
 
     delete base_img;
-    for (unsigned i = 0; i < stickers.size(); i++) {
-        delete stickers[i];
-    }
-
     base_img = (rhs.base_img != nullptr) ? new Image(*(rhs.base_img)) : nullptr;
+    int layers_ = rhs.layers();
+    stickers.resize(layers_, nullptr);
+    x_coords.resize(layers_, 0);
+    y_coords.resize(layers_, 0);
 
-    return *this;
 
-    stickers.resize(rhs.stickers.size(), nullptr);
     for (unsigned i = 0; i < rhs.stickers.size(); i++) {
         if (rhs.stickers[i] != nullptr) {
-            stickers[i] = new Image(*(rhs.stickers[i]));
+            stickers[i] = rhs.stickers[i];
         }
+        x_coords[i] = rhs.x_coords[i];
+        y_coords[i] = rhs.y_coords[i];
     }
-
-    // Copy coordinates
-    x_coords = rhs.x_coords;
-    y_coords = rhs.y_coords;
 
     return *this;
 }
@@ -56,38 +54,34 @@ StickerSheet& StickerSheet::operator=(const StickerSheet& rhs) {
 
 StickerSheet::~StickerSheet() {
     delete base_img;
-    for (unsigned i = 0; i < stickers.size(); i++) {
-        delete stickers[i];
-    }
 }
 
 int StickerSheet::addSticker(Image& sticker, int x, int y) {
-    stickers.push_back(new Image(sticker));
+    stickers.push_back(&sticker);
     x_coords.push_back(x);
     y_coords.push_back(y);
-    return stickers.size() - 1;
+    return layers() - 1;
     // add image pointer to stickers, and add coords to respective vectors
 }
 
 
 int StickerSheet::setStickerAtLayer(Image& sticker, unsigned layer, int x, int y) {
     // if layer is greater than the size of the stickers vector
-    if (layer > stickers.size()) {
+    if (layer > layers()) {
         addSticker(sticker, x, y);
-        return stickers.size() - 1; // size - 1 == index
+        return layers() - 1; // size - 1 == index
     }
     
-    stickers[layer] = new Image(sticker);
+    stickers[layer] = &sticker;
     x_coords[layer] = x;
     y_coords[layer] = y;
 
     return layer;
-    
 }
 
 
 bool StickerSheet::translate(unsigned index, int x, int y) {
-    if (index >= stickers.size() || stickers[index] == nullptr) 
+    if (index >= layers() || stickers[index] == nullptr) 
         return false;
 
     x_coords[index] = x;
@@ -97,25 +91,26 @@ bool StickerSheet::translate(unsigned index, int x, int y) {
 
 
 void StickerSheet::removeSticker(unsigned index) {
-    if (index >= stickers.size())
+    if (index >= layers() || stickers[index] == nullptr)
         return;
 
-    if (stickers[index] != nullptr) {
-        delete stickers[index];       // Delete the dynamically allocated sticker
+    if (stickers[index] != nullptr)     // Delete the dynamically allocated sticker
         stickers[index] = nullptr;    // Set the pointer to nullptr
-    }
+
+    x_coords[index] = 0;
+    y_coords[index] = 0;
 }
 
 
 Image* StickerSheet::getSticker(unsigned index) {
-    if (index >= stickers.size() || stickers[index] == nullptr) {
+    if (index >= layers() || stickers[index] == nullptr) {
         return nullptr;
     }
     return stickers[index];
 }
 
 
-int StickerSheet::layers() const {
+unsigned StickerSheet::layers() const {
     return stickers.size();
 }
 
@@ -126,7 +121,7 @@ Image StickerSheet::render() const {
     int max_x = base_img->width() - 1;
     int max_y = base_img->height() - 1;
 
-    for (unsigned i = 0; i < stickers.size(); i++) {
+    for (unsigned i = 0; i < layers(); i++) {
         if (stickers[i] != nullptr) {
             min_x = std::min(min_x, x_coords[i]);
             min_y = std::min(min_y, y_coords[i]);
@@ -141,20 +136,18 @@ Image StickerSheet::render() const {
 
     // create render() output based on dimensions calculated above
 
-    Image* canvas = new Image(new_width, new_height);
+    Image canvas(new_width, new_height);
 
-    // for (unsigned i = 0; i < width_ * height_; i++) {
-    //   imageData_[i] = other.imageData_[i];
-    // }
+
     // copy base image over to the new rendered image 
     for (unsigned x = 0; x < base_img->width(); x++) {
         for (unsigned y = 0; y < base_img->height(); y++) {
-            canvas->getPixel(x - min_x, y - min_y) = base_img->getPixel(x, y);
+            canvas.getPixel(x - min_x, y - min_y) = base_img->getPixel(x, y);
         }
     }
 
 
-    for (unsigned i = 0; i < stickers.size(); i++) {
+    for (unsigned i = 0; i < layers(); i++) {
         if (stickers[i] == nullptr) 
             continue;
 
@@ -165,10 +158,10 @@ Image StickerSheet::render() const {
                 if (p.a == 0)
                     continue;
 
-                canvas->getPixel(x - min_x + x_coords[i], y - min_y + y_coords[i]) = p;
+                canvas.getPixel(x - min_x + x_coords[i], y - min_y + y_coords[i]) = p;
+                
             }
         }
     }
-
-    return *canvas;
+    return canvas;
 }

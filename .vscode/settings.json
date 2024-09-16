@@ -2,6 +2,7 @@
     "cmake.ignoreCMakeListsMissing": true,
     "files.associations": {
         "new": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "ostream": "cpp"
     }
 }
