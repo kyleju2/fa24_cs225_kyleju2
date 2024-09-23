@@ -22,8 +22,9 @@
  */
 int RecursionExercises::sumDigits(int n)
 {
+    if (n == 0) return 0; // base case
 
-    return -1;
+    return n % 10 + sumDigits(n / 10); // add rightmost digit and using int division, truncate rightmost digit
 }
 
 /**
@@ -45,6 +46,8 @@ int RecursionExercises::sumDigits(int n)
  */
 int RecursionExercises::triangle(int rows)
 {
+    if (rows == 0)
+        return 0;
 
-    return -1;
+    return rows + triangle(rows - 1);
 }

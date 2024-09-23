@@ -29,9 +29,14 @@ namespace QuackFun {
 template <typename T>
 T sum(stack<T>& s)
 {
-
-    // Your code here
-    return T(); // stub return value (0 for primitive types). Change this!
+    if (s.empty())
+        return (T());
+    T res = s.top();
+    T tmp = s.top();
+    s.pop();
+    res += sum(s);
+    s.push(tmp);
+    return res; // stub return value (0 for primitive types). Change this!
                 // Note: T() is the default value for objects, and 0 for
                 // primitive types
 }
@@ -55,9 +60,34 @@ T sum(stack<T>& s)
  */
 bool isBalanced(queue<char> input)
 {
+    std::stack<char> past;
+    
+    while (!input.empty()) {
+        char current = input.front();
+        input.pop(); // Remove the front element from the queue
+        
+        // Push opening brackets to the stack
+        if (current == '(' || current == '[' || current == '{') {
+            past.push(current);
+        }
+        // For closing brackets, check if the stack is not empty and matches the corresponding opening bracket
+        else if (current == ')' || current == ']' || current == '}') {
+            if (past.empty()) {
+                return false; // Closing bracket with no corresponding opening bracket
+            }
+            char top = past.top();
+            if ((current == ')' && top == '(') || 
+                (current == ']' && top == '[') || 
+                (current == '}' && top == '{')) {
+                past.pop(); // Matched, pop the top of the stack
+            } else {
+                return false; // Mismatched brackets
+            }
+        }
+    }
 
-    // @TODO: Make less optimistic
-    return true;
+    // If the stack is empty at the end, all brackets are matched
+    return past.empty();
 }
 
 /**
@@ -77,10 +107,39 @@ bool isBalanced(queue<char> input)
  */
 template <typename T>
 void scramble(queue<T>& q)
-{
+{   
     stack<T> s;
-    // optional: queue<T> q2;
+    queue<T> q2;
+    int block_size = 1;
+    while (!q.empty()) {
+        if (block_size % 2 == 1) {
+            for (int i = 0; i < block_size; i++) {
+                if (!q.empty()) {
+                    q2.push(q.front());
+                    q.pop();
+                }
+            }
+        } else if (block_size % 2 == 0) {
+            for (int i = 0; i < block_size; i++) {
+                if (!q.empty()) {
+                    s.push(q.front());
+                    q.pop();
+                }
+            }                
+            for (int i = 0; i < block_size; i++) {
+                if (!s.empty()) {
+                    q2.push(s.top());
+                    s.pop();
+                }
+            } 
+        }    
+        block_size++;
+    }
 
-    // Your code here
+    while (!q2.empty()) {
+        q.push(q2.front());
+        q2.pop();
+    }
 }
+
 }
