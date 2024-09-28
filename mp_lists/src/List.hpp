@@ -1,23 +1,19 @@
-/**
- * @file list.cpp
- * Doubly Linked List (MP 3).
- */
-
 template <class T>
 List<T>::List() { 
   // @TODO: graded in mp_lists part 1
     head_ = NULL;
     tail_ = NULL;
+    length_ = 0;
 }
 
-/**
+/*
  * Returns a ListIterator with a position at the beginning of
  * the List.
  */
 template <typename T>
 typename List<T>::ListIterator List<T>::begin() const {
   // @TODO: graded in mp_lists part 1
-  return List<T>::ListIterator(NULL);
+  return List<T>::ListIterator(head_);
 }
 
 /**
@@ -29,14 +25,20 @@ typename List<T>::ListIterator List<T>::end() const {
   return List<T>::ListIterator(NULL);
 }
 
-
 /**
  * Destroys all dynamically allocated memory associated with the current
  * List class.
  */
 template <typename T>
 void List<T>::_destroy() {
-  /// @todo Graded in mp_lists part 1
+	while (head_ != NULL) {
+		ListNode* curr = head_;
+		head_ = curr->next;
+		delete curr;
+	}
+
+	length_ = 0;
+	tail_ = NULL;
 }
 
 /**
@@ -47,21 +49,20 @@ void List<T>::_destroy() {
  */
 template <typename T>
 void List<T>::insertFront(T const & ndata) {
-  /// @todo Graded in mp_lists part 1
   ListNode * newNode = new ListNode(ndata);
   newNode -> next = head_;
   newNode -> prev = NULL;
-  
+
   if (head_ != NULL) {
     head_ -> prev = newNode;
   }
+  // empty list conditions
   if (tail_ == NULL) {
     tail_ = newNode;
   }
   
-
+  head_ = newNode;
   length_++;
-
 }
 
 /**
@@ -72,7 +73,20 @@ void List<T>::insertFront(T const & ndata) {
  */
 template <typename T>
 void List<T>::insertBack(const T & ndata) {
-  /// @todo Graded in mp_lists part 1
+  ListNode * newNode = new ListNode(ndata);
+  newNode -> next = NULL;
+  newNode -> prev = tail_;
+
+  if (tail_ != NULL) {
+    tail_ -> next = newNode;
+  }
+  // empty list conditions
+  if (head_ == NULL) {
+    head_ = newNode;
+  }
+  
+  tail_ = newNode;
+  length_++;
 }
 
 /**
@@ -92,20 +106,20 @@ void List<T>::insertBack(const T & ndata) {
  * @return The starting node of the sequence that was split off.
  */
 template <typename T>
-typename List<T>::ListNode * List<T>::split(ListNode * start, int splitPoint) {
+typename List<T>::ListNode * List<T>::split(ListNode* start, int splitPoint) {
   /// @todo Graded in mp_lists part 1
-  ListNode * curr = start;
+	ListNode* curr = start;
+	
+	for (int i = 0; i < splitPoint && curr != NULL; i++) {
+		curr = curr->next;
+	}
 
-  for (int i = 0; i < splitPoint || curr != NULL; i++) {
-    curr = curr->next;
-  }
+	if (curr != NULL && curr->prev != NULL) {
+		curr->prev->next = NULL;
+		curr->prev = NULL;
+	}
 
-  if (curr != NULL) {
-      curr->prev->next = NULL;
-      curr->prev = NULL;
-  }
-
-  return NULL;
+	return curr;
 }
 
 /**
@@ -120,8 +134,23 @@ typename List<T>::ListNode * List<T>::split(ListNode * start, int splitPoint) {
 template <typename T>
 void List<T>::waterfall() {
   /// @todo Graded in part 1
-}
+  ListNode* curr = head_;
 
+  while (curr != NULL) {
+	curr = curr->next; // skipping first node
+
+	if (curr == NULL || curr->next == NULL) break; // bounds check
+
+	ListNode* tmp = curr->next; // store ref to next node
+
+	tail_->next = curr; // updating tail_ pointer
+	curr->next = NULL; // new tail points to NULL
+	curr->prev->next = tmp;
+	curr->prev = tail_; // new tail_ points to old tail_ 
+	tail_ = curr; // update list class tail_ 
+	curr = tmp;
+  }
+}
 
 /**
  * Reverses the current List.
@@ -144,8 +173,38 @@ void List<T>::reverse() {
  */
 template <typename T>
 void List<T>::reverse(ListNode *& startPoint, ListNode *& endPoint) {
-  /// @todo Graded in mp_lists part 2
+
+  if(startPoint == NULL || endPoint == NULL || startPoint == endPoint) return;
+  
+  ListNode* startNode = startPoint;
+  ListNode* startPrev = startPoint->prev;
+  ListNode* endNext = endPoint->next;
+
+  while (startPoint != endPoint) {
+    ListNode* curr = startPoint->prev;
+    startPoint->prev = startPoint->next;
+    startPoint->next = curr;
+    startPoint = startPoint->prev;
+  }
+  
+  ListNode* tmp = startPoint->prev;
+  startPoint->prev = startPrev;
+  startPoint->next = tmp;
+  endPoint = startNode;
+  endPoint->next = endNext;
+
+  if(startPrev == NULL)
+    head_ = startPoint;
+  else
+    startPrev->next = startPoint;
+  if(endNext == NULL)
+    tail_ = endPoint;
+  else
+    endNext->prev = endPoint;
 }
+
+ 
+
 
 /**
  * Reverses blocks of size n in the current List. You should use your
@@ -153,9 +212,33 @@ void List<T>::reverse(ListNode *& startPoint, ListNode *& endPoint) {
  *
  * @param n The size of the blocks in the List to be reversed.
  */
+
 template <typename T>
 void List<T>::reverseNth(int n) {
-  /// @todo Graded in mp_lists part 2
+  // edge cases
+  if (n <= 1 || head_ == nullptr) return;  // No reversal needed for n <= 1 or an empty list
+  if (n >= length_) {
+    reverse();
+    return;
+  }
+  // variables for traversal 
+  ListNode* start = head_;
+  ListNode* end = head_;
+  
+
+  while (start != nullptr) {
+      // Move the end pointer n-1 steps forward, or until the end of the list
+      for (int i = 1; i < n && end->next != nullptr; ++i) {
+          end = end->next;
+      }
+
+      // Reverse the block from start to end
+      reverse(start, end);
+
+      // Move start and end to the next block
+      start = end->next;  // Move to the next block
+      end = start;  // Reset end to the new start
+  }
 }
 
 
@@ -194,11 +277,52 @@ void List<T>::mergeWith(List<T> & otherList) {
  * @param second The starting node of the second sequence.
  * @return The starting node of the resulting, sorted sequence.
  */
+
 template <typename T>
-typename List<T>::ListNode * List<T>::merge(ListNode * first, ListNode* second) {
-  /// @todo Graded in mp_lists part 2
-  return NULL;
+typename List<T>::ListNode* List<T>::merge(ListNode* first, ListNode* second) {
+  if (first == NULL) return second;
+  if (second == NULL) return first;
+
+  ListNode* mergedHead = NULL;
+  ListNode* curr = NULL;
+
+  if (first->data < second->data) {
+    mergedHead = first;
+    first = first->next;
+  } 
+  else {
+    mergedHead = second;
+    second = second->next;
+  }
+
+  curr = mergedHead;
+
+  while (first != NULL && second != NULL) {
+    if (first->data < second->data) {
+      curr->next = first;
+      first->prev = curr;
+      first = first->next;
+    } 
+    else {
+      curr->next = second;
+      second->prev = curr;
+      second = second->next;
+    }
+    curr = curr->next;
+  }
+
+  if (first != NULL) {
+    curr->next = first;
+    first->prev = curr;
+  } 
+  else if (second != NULL) {
+    curr->next = second;
+    second->prev = curr;
+  }
+
+  return mergedHead;
 }
+
 
 /**
  * Sorts a chain of linked memory given a start node and a size.
@@ -213,6 +337,13 @@ typename List<T>::ListNode * List<T>::merge(ListNode * first, ListNode* second) 
  */
 template <typename T>
 typename List<T>::ListNode* List<T>::mergesort(ListNode * start, int chainLength) {
-  /// @todo Graded in mp_lists part 2
-  return NULL;
+  if (chainLength <= 1) return start;
+
+  int midpt = chainLength / 2;
+
+  ListNode* middle = split(start, midpt); // split list using split()
+  start = mergesort(start, midpt); // recursive call on mergesort from the split point
+  middle = mergesort(middle, chainLength - midpt);
+
+  return merge(start, middle);
 }
