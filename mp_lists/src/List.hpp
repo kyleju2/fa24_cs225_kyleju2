@@ -195,10 +195,13 @@ void List<T>::reverse(ListNode *& startPoint, ListNode *& endPoint) {
 
   if(startPrev == NULL)
     head_ = startPoint;
+    
   else
     startPrev->next = startPoint;
+
   if(endNext == NULL)
     tail_ = endPoint;
+
   else
     endNext->prev = endPoint;
 }

@@ -197,7 +197,14 @@ void exampleManyRemovals()
 
 int main(int argc, char** argv)
 {
-    exampleAllBuild();
+    BST<int, int> tree;
+    tree.insert(5, 4);
+    tree.insert(7, 4);
+    tree.insert(9, 4);
+    
+    tree.print();
+    cout << tree.find(5);
+    // printEnd();
 
     return 0;
 }

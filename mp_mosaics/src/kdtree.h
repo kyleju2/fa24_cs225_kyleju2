@@ -196,9 +196,14 @@ class KDTree
     void printTree(KDTreeNode * subroot, std::vector<std::string>& output,
                    int left, int top, int width, int currd) const;
 
-    /**
-     * @todo Add your helper functions here.
-     */
+    // HELPER FUNCTION DECLARATIONS:
+
+    void copy(KDTree<Dim>* sub_tree_1, KDTree<Dim>* sub_tree_2);
+    void clear(KDTree<Dim>* node);
+    typename KDTree<Dim>::KDTreeNode* builder(vector<Point<Dim>>& list, int start, int end, int dimension);
+    int partition(const vector<Point<Dim>>& pts, int left, int right, int pivot);
+
+    // END OF HELPER FUNCTION DECLARATIONS
 };
 
 /**
