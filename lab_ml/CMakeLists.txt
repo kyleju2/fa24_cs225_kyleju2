@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Assignment Information (these are the *only* things you need to change here between assignments)
-set(assignment_name "lab_ml") # Name of the assignment
-set(assignment_version 1.2022.05.0) # Version, where minor=semester_year, patch=semester_end_month, tweak=revision
-set(assignment_entrypoints "nim") # Entrypoints to run the program
-set(assignment_clean_rm "nim_graph.dot" "nim_graph.png") # Generated files that should be removed with "make clean"
-set(assignment_container "fa22") # Container we are targetting
+include(assignment.cmake)
 
 # Add color support to our messages.
 # See: https://stackoverflow.com/questions/18968979/how-to-get-colorized-output-with-cmake
@@ -22,12 +17,6 @@ if(NOT WIN32)
   set(ColorWhite   "${Esc}[37m")
 endif()
 
-site_name(SITE_NAME)
-
-if(SITE_NAME MATCHES "ews.illinois.edu$")
-    set(EWS TRUE)
-endif()
-
 # Handle unsupported container warnings.
 # Default to remind students to use our container, unless they are using our targeted container.
 set(REMIND_CONTAINER TRUE)
@@ -35,14 +24,9 @@ if(DEFINED ENV{CS225_CONTAINER})
     if($ENV{CS225_CONTAINER} STREQUAL ${assignment_container})
         # This is the container we are targetting, so don't print the reminder.
         unset(REMIND_CONTAINER)
-    elseif($ENV{CS225_CONTAINER} MATCHES ".+-arm")
-        message(STATUS "${ColorYellow}Looks like you are using an ARM/M1 container.${ColorReset}")
     else()
-        message(STATUS "${ColorYellow}Looks like you are using an unrecognized container.${ColorReset}")
+        message(STATUS "${ColorYellow}Looks like you may be using an outdated container.${ColorReset}")
     endif()
-elseif(DEFINED EWS)
-    message(STATUS "${ColorYellow}Looks like you are using EWS.${ColorReset}")
-    message(STATUS "${ColorRed}EWS is outdated and unsupported. Use at your own risk.${ColorReset}")
 else()
     # Warn students who are not using our container at all.
     message(STATUS "${ColorYellow}Looks like you are not using the provided container.${ColorReset}")
@@ -63,19 +47,15 @@ if ("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 endif()
 
 # Specify C++ compiler and linker.
-if(NOT DEFINED EWS)
-    set(CMAKE_C_COMPILER "/usr/bin/clang")
-    set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-    set(CMAKE_LINKER "/usr/bin/clang++")
-else()
-    set(CMAKE_C_COMPILER "/software/llvm-6.0.1/bin/clang")
-    set(CMAKE_CXX_COMPILER "/software/llvm-6.0.1/bin/clang++")
-    set(CMAKE_LINKER "/software/llvm-6.0.1/bin/clang++")
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+set(CMAKE_LINKER "/usr/bin/clang++")
 
-    # Add other required flags for EWS.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
-endif()
+# Specify ccache for faster recompilation if found.
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+endif(CCACHE_FOUND)
 
 # Specify C++ Standard.
 set(CMAKE_CXX_STANDARD 17)
@@ -91,7 +71,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Werror -Wfatal-errors -Wextra -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function")
 
 # Specify debug symbols and no optimizations for Debug builds.
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCS225_SOLUTION -D_GLIBCXX_DEBUG -O0 -gdwarf-4")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_GLIBCXX_DEBUG -O0 -gdwarf-4")
 
 # Specify additional clean files.
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${assignment_clean_rm}")
@@ -99,21 +79,7 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${assignment_clea
 # Add Catch2.
 # Note: Ubuntu 20.04 LTS does not have Catch2 on apt
 # See: https://github.com/catchorg/Catch2/issues/1383
-if(NOT DEFINED EWS)
-    find_package(Catch2 REQUIRED)
-else()
-    include(FetchContent)
-
-    FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v3.0.0-preview3
-    )
-
-    FetchContent_MakeAvailable(Catch2)
-
-    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
-endif()
+find_package(Catch2 REQUIRED)
 
 # Path definitions.
 set(lib_dir ${CMAKE_SOURCE_DIR}/lib)
@@ -142,6 +108,7 @@ foreach(entrypoint IN LISTS assignment_entrypoints)
     add_executable(${entrypoint} ${entry_dir}/${entrypoint}.cpp)
     target_link_libraries(${entrypoint} PRIVATE libs src)
 endforeach()
+
 
 add_custom_target(
     install_graphviz
