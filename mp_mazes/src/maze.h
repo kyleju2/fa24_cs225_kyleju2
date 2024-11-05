@@ -138,8 +138,10 @@ public:
    * First, create a new PNG. Set the dimensions of the PNG to
    * (width*10+1,height*10+1). where height and width were the arguments to
    * makeMaze. Blacken the entire topmost row and leftmost column of
-   * pixels, except the entrance (1,0) through (9,0).  For each square in
-   * the maze, call its maze coordinates (x,y). If the right wall exists,
+   * pixels, except for the entrance. Instead make a gap above the specified 
+   * start point defined as the inclusive region from ((start*10)+1, 0) to ((start+1)*10-1, 0).
+   * [The gap is the pixels larger than start*10 and smaller than (start+1)*10 ]
+   * For each square in the maze, call its maze coordinates (x,y). If the right wall exists,
    * then blacken the pixels with coordinates ((x+1)*10,y*10+k) for k from
    * 0 to 10. If the bottom wall exists, then blacken the pixels with
    * coordinates (x*10+k, (y+1)*10) for k from 0 to 10.
