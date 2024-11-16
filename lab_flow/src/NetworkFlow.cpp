@@ -16,7 +16,8 @@ int min(int a, int b) {
 NetworkFlow::NetworkFlow(Graph & startingGraph, Vertex source, Vertex sink) :
   g_(startingGraph), residual_(Graph(true,true)), flow_(Graph(true,true)), source_(source), sink_(sink) {
 
-  // YOUR CODE HERE
+  maxFlow_ = 0;
+  std::vector<Vertex> v = g_.
 }
 
   /**

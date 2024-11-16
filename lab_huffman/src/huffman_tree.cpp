@@ -73,16 +73,10 @@ HuffmanTree::TreeNode*
 HuffmanTree::removeSmallest(queue<TreeNode*>& singleQueue,
                             queue<TreeNode*>& mergeQueue)
 {
+    if (singleQueue.size() == 0 && mergeQueue.size() == 0)
+        return NULL;
 
-    /**
-     * @todo Your code here!
-     *
-     * Remove the smallest TreeNode * from the two queues given as
-     * parameters. The entries on the queues are in sorted order, so the
-     * smaller of the two queues heads is the smallest item in either of
-     * the queues. Return this item after removing it from its queue.
-     */
-    return NULL;
+    
 }
 
 void HuffmanTree::buildTree(const vector<Frequency>& frequencies)

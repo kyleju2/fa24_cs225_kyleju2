@@ -1,10 +1,17 @@
-#include <catch2/catch_test_macros.hpp>
+// #include "maze.h"
+// #include <iostream>
 
-// You may write your own test cases in this file to test your code.
-// Test cases in this file are not graded.
+// int main() {
 
-TEST_CASE("My Test Case", "") {
-    bool student_wrote_test_case = false;
+//     SquareMaze maze;
+//     maze.makeMaze(10, 10);
+//     cs225::PNG* image = maze.drawMaze(0);
+//     auto sol = maze.solveMaze(0);
+//     for (auto x: sol) {
+//         std::cout << x;
+//     }
 
-    REQUIRE( student_wrote_test_case );
-}
+//     image->writeToFile("test.png");
+
+//     return 0;
+// }

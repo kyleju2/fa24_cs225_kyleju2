@@ -112,7 +112,7 @@ class KDTree
      * Destructor for KDTree.
      */
     ~KDTree();
-
+    void clear(KDTreeNode* node); // destructor helper function
     /**
      * Finds the closest point to the parameter point in the KDTree.
      *
@@ -170,7 +170,11 @@ class KDTree
      *  tree.
      * @return The closest point to a in the KDTree.
      */
+
+
+    
     Point<Dim> findNearestNeighbor(const Point<Dim>& query) const;
+    Point<Dim> findNearestNeighbor(const Point<Dim>& query, int dimension, KDTreeNode* node) const;
 
     // functions used for grading:
 
@@ -179,6 +183,8 @@ class KDTree
      *  kdtree_extras.cpp.
      * Prints the KDTree to the terminal in a pretty way.
      */
+
+    
     void printTree(ostream& out = cout,
                    colored_out::enable_t enable_bold = colored_out::COUT,
                    int modWidth = -1) const;
@@ -197,12 +203,9 @@ class KDTree
                    int left, int top, int width, int currd) const;
 
     // HELPER FUNCTION DECLARATIONS:
-
     void copy(KDTree<Dim>* sub_tree_1, KDTree<Dim>* sub_tree_2);
-    void clear(KDTree<Dim>* node);
     typename KDTree<Dim>::KDTreeNode* builder(vector<Point<Dim>>& list, int start, int end, int dimension);
     int partition(const vector<Point<Dim>>& pts, int left, int right, int pivot);
-
     // END OF HELPER FUNCTION DECLARATIONS
 };
 
@@ -248,7 +251,6 @@ template <int Dim>
 bool shouldReplace(const Point<Dim>& target, const Point<Dim>& currentBest,
                     const Point<Dim>& potential);
 
-
 /**
   * Determines if Point a is smaller than Point b in a given dimension d.
   * If there is a tie, break it with Point::operator<().
@@ -274,6 +276,8 @@ bool smallerDimVal(const Point<Dim>& first, const Point<Dim>& second,
                     int curDim);
 
 
+template <int Dim>
+double distance(const Point<Dim>& a, const Point<Dim>& b);
 
 /**
   * This function uses the quickselect algorithm to partition the given

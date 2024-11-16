@@ -6,6 +6,7 @@
 #include <utility>
 #include <algorithm>
 #include <deque>
+#include <iostream>
 
 using namespace std;
 
@@ -33,21 +34,27 @@ bool shouldReplace(const Point<Dim>& target,
                                 const Point<Dim>& currentBest,
                                 const Point<Dim>& potential)
 {
-  double best = 0; // var to store dist from best
-  double pot = 0; // var to store dist to potential
+  double best = distance(target, currentBest); // var to store dist from best
+  double pot = distance(target, potential); // var to store dist to potential
 
-  // Loop through points possible due to templated <int Dim> and calculate euclidian distance
-  for (int i = 0; i < Dim; i++) {
-    best += (target[i] - currentBest[i])*(target[i] - currentBest[i]);
-    pot +=  (target[i] - potential[i])*(target[i] - potential[i]);
+  if (pot < best) {
+      return true;
+  } 
+  else if (pot == best) {
+      return pot < best; 
   }
 
-  if (best == pot)
-    return potential < currentBest;
-
-  return best > pot ? true : false; 
+  return false; 
 }
 
+template <int Dim>
+double distance(const Point<Dim>& a, const Point<Dim>& b) {
+    double dist = 0.0;
+    for (int i = 0; i < Dim; i++) {
+      dist += (a[i] - b[i]) * (a[i] - b[i]);
+    }
+    return dist;
+} 
 
 template <int Dim>
 KDTree<Dim>::KDTree(const vector<Point<Dim>>& newPoints)
@@ -59,30 +66,34 @@ KDTree<Dim>::KDTree(const vector<Point<Dim>>& newPoints)
     return;
   }
 
-  vector<Point<Dim>> copy = newPoints; // make a non const copy
-
-  root = builder(copy, 0, size-1, 0);
+  vector<Point<Dim>> copy = newPoints; // make a non const copy of pts
+  root = builder(copy, 0, size-1, 0); // call recursive builder helper 
 
 }
 
 
 template <int Dim>
-typename KDTree<Dim>::KDTreeNode* KDTree<Dim>::builder(vector<Point<Dim>>& list, int start, int end, int dimension) {
+typename KDTree<Dim>::KDTreeNode*
+KDTree<Dim>::builder(vector<Point<Dim>>& list, int start, int end, int dimension) {
   if (start > end)
     return NULL;
   // median calculations
   int median = (start + end) / 2;
   // create cmp lambda to call smallerDimVal between 2 pts to pass as cmp in select
-  auto cmp = [dimension](const Point<Dim>& p1, const Point<Dim>& p2) {return smallerDimVal(p1, p2, dimension);};
-  KDTreeNode* root = new KDTreeNode(list[median]); // create new node to be the root of our tree
+  auto cmp = [dimension](const Point<Dim>& p1, const Point<Dim>& p2) {
+    return smallerDimVal(p1, p2, dimension);
+  };
+  // create new node to be the root of our tree
   // call select to get the median value and partition our list
-  select(list.begin() + start, list.end(), list.begin() + median, cmp);
+  select(list.begin() + start, list.begin() + end + 1, list.begin() + median, cmp);
+  KDTreeNode* node = new KDTreeNode(list[median]);
   // recursively call down right and left subtrees
   // (d + 1) mod k -> from MP writeup
-  root->left = builder(list, start, median - 1, (dimension + 1) % Dim); 
-  root->right = builder(list, median + 1, end, (dimension + 1) % Dim);
+  // std::cout << "Building subtree, median: " << list[median] << ", dimension: " << dimension << std::endl;
+  node->left = builder(list, start, median - 1, (dimension + 1) % Dim); 
+  node->right = builder(list, median + 1, end, (dimension + 1) % Dim);
 
-  return root; // return root (pointer to tree root node)
+  return node; // return root (pointer to tree root node)
 }
 
 
@@ -111,8 +122,8 @@ void select(RandIter begin, RandIter end, RandIter k, Comparator cmp) {
   if (begin == end)
     return;
   
-  RandIter pivotIndex = begin + (end - begin) / 2;
-  pivotIndex = partition(begin, end, pivotIndex, cmp);
+  RandIter pivotIndex = partition(begin, end, k, cmp);
+
   if (k == pivotIndex)
     return;
 
@@ -175,7 +186,7 @@ const KDTree<Dim>& KDTree<Dim>::operator=(const KDTree<Dim>& rhs) {
 
 // defining a recursive helper function to erase a k-d tree
 template <int Dim>
-void clear(KDTree<Dim>* node) {
+void KDTree<Dim>::clear(KDTreeNode* node) {
   // check to make sure we dont call delete on nullptr
   if (!node)
     return;
@@ -188,16 +199,50 @@ void clear(KDTree<Dim>* node) {
 
 template <int Dim>
 KDTree<Dim>::~KDTree() {
-  // clear(root);
+  clear(root);
 }
 
 template <int Dim>
 Point<Dim> KDTree<Dim>::findNearestNeighbor(const Point<Dim>& query) const
 {
-    /**
-     * @todo Implement this function!
-     */
+  return findNearestNeighbor(query, 0, root); // call overriden function definition
+}
 
+
+template <int Dim>
+Point<Dim> KDTree<Dim>::findNearestNeighbor(const Point<Dim>& query, int dimension, KDTreeNode* node) const
+{
+  // empty tree case
+  if (node == NULL)
     return Point<Dim>();
+
+  // leaf node, can't recurse any further aka base case of recursive algorithm
+  if (node->right == NULL && node->left == NULL)
+    return node->point;
+
+  Point<Dim> best = node->point;
+  Point<Dim> candidate = node->point;
+
+  bool goLeft = smallerDimVal(query, node->point, dimension);
+  KDTreeNode* firstSubtree = goLeft ? node->left : node->right;
+  KDTreeNode* secondSubtree = goLeft ? node->right : node->left;
+
+  if (firstSubtree != NULL) {
+    best = findNearestNeighbor(query, (dimension + 1) % Dim, firstSubtree);
+    if (shouldReplace(query, best, candidate))
+      best = candidate; // update best to our new closest point
+  }
+
+  double splitDistance = (query[dimension] - node->point[dimension]) * (query[dimension] - node->point[dimension]);
+  
+  if (splitDistance <= distance(query, best) && secondSubtree != nullptr) {
+    Point<Dim> candidate = findNearestNeighbor(query, (dimension + 1) % Dim, secondSubtree);
+    if (shouldReplace(query, best, candidate)) {
+        best = candidate;
+    }
+  }
+
+  return best;
+  
 }
 

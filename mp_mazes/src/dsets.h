@@ -73,4 +73,7 @@ class DisjointSets
      */
     int getValue(int elem) const;
 
+  private:
+    std::vector<int> data;
+
 };

@@ -30,8 +30,8 @@ using namespace cs225;
  * @param theSource The input image to construct a photomosaic of
  * @param theTiles The tiles image to use in the mosaic
  */
-MosaicCanvas* mapTiles(SourceImage const& theSource,
-                       vector<TileImage> & theTiles);
+MosaicCanvas* mapTiles(SourceImage const& source,
+                       vector<TileImage> & tiles);
 
 // TODO: move this comment back to inline above once someone figures out unidef-like real directive parsing
 // SOLUTION
