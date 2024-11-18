@@ -28,7 +28,6 @@ class MazeNode {
   */
     bool down;
     bool right;
-
 };
 
 /**
